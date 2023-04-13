@@ -3,6 +3,8 @@ import { default as express, Express } from "express";
 import http from "http";
 import path from "path";
 import open from "open";
+// import https from "https";
+// import fs from "fs";
 
 function assets(): string {
   try {
@@ -27,7 +29,7 @@ export interface Options {
 }
 
 export default async function runServer(
-  reportDir: string,
+  reportDir: string | null,
   options: Options
 ): Promise<void> {
   const port = options.port || DEFAULT_PORT;
@@ -35,7 +37,9 @@ export default async function runServer(
   const openInBrowser = options.open == undefined ? true : options.open;
 
   const app: Express = express();
-  app.use("/data", express.static(reportDir));
+  if (reportDir !== null) {
+    app.use("/data", express.static(reportDir));
+  }
   app.use(express.static(path.dirname(assets())));
 
   const server = http.createServer(app);

@@ -33,18 +33,18 @@ export const useApiStore = defineStore("api", () => {
   const cutoffDebounced = refDebounced(cutoff, 100);
 
   // Hydrate the API stores.
-  const hydrate = async (): Promise<void> => {
+  const hydrate = async (url?: string): Promise<void> => {
     isLoaded.value = false;
 
     // Hydrate all stores (fetch data)
     loadingText.value = "Fetching & parsing files...";
-    await fileStore.hydrate();
+    await fileStore.hydrate(url);
     loadingText.value = "Fetching & parsing k-grams...";
-    await kgramStore.hydrate();
+    await kgramStore.hydrate(url);
     loadingText.value = "Fetching & parsing metadata...";
-    await metadataStore.hydrate();
+    await metadataStore.hydrate(url);
     loadingText.value = "Fetching & parsing pairs...";
-    await pairStore.hydrate();
+    await pairStore.hydrate(url);
 
     // Calculate the initial cut-off value.
     loadingText.value = "Calculating initial cut-off...";

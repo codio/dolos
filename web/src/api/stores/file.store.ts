@@ -69,8 +69,8 @@ export const useFileStore = defineStore("file", () => {
 
   // Functions
 
-  async function hydrate(): Promise<void> {
-    const parsed = parse(await fetch());
+  async function hydrate(url?: string): Promise<void> {
+    const parsed = parse(await fetch(url));
     filesById.value = parsed.files;
     filesActiveById.value = parsed.files;
     legend.value = parsed.labels;
@@ -81,9 +81,9 @@ export const useFileStore = defineStore("file", () => {
   }
 
   async function fetch(
-    url: string = DATA_URL + "files.csv"
+    url: string = DATA_URL
   ): Promise<any[]> {
-    return await parseCsv(url);
+    return await parseCsv(url + "files.csv");
   }
 
   // Parse the files from a CSV string.

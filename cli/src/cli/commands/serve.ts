@@ -8,7 +8,7 @@ import { tryCatch, error, setLogging } from "../util/utils";
 export function serveCommand(program: Command): Command {
   return new Command("serve")
     .description("Serve the contents of an analysis.")
-    .argument("<path>", "Path to the result of an analysis.")
+    .argument("[path]", "Path to the result of an analysis.", null)
     .option(
       "--no-open",
       Utils.indent(
@@ -40,19 +40,21 @@ interface ServeOptions {
   verbose: boolean;
 }
 
-export async function serve(reportDir: string, options: ServeOptions): Promise<void> {
+export async function serve(reportDir: string | null, options: ServeOptions): Promise<void> {
   if (options.verbose) {
     setLogging("info");
   }
 
   tryCatch(options.verbose, async () => {
-    try {
-      for (const file of ["files.csv", "kgrams.csv", "metadata.csv", "pairs.csv"]) {
-        await fs.access(path.join(reportDir, file), constants.R_OK);
+    if (reportDir !== null) {
+      try {
+        for (const file of ["files.csv", "kgrams.csv", "metadata.csv", "pairs.csv"]) {
+          await fs.access(path.join(reportDir, file), constants.R_OK);
+        }
+      } catch (e) {
+        error(e.message);
+        throw new Error(`The given path '${reportDir}' does not seem like a Dolos report.`);
       }
-    } catch (e) {
-      error(e.message);
-      throw new Error(`The given path '${reportDir}' does not seem like a Dolos report.`);
     }
     await runServer(reportDir, options);
   });

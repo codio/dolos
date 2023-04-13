@@ -37,16 +37,16 @@ export const useKgramStore = defineStore("kgrams", () => {
 
   // Fetch the k-grams from the CSV file.
   async function fetch(
-    url: string = DATA_URL + "kgrams.csv"
+    url: string = DATA_URL
   ): Promise<any[]> {
-    return await parseCsv(url);
+    return await parseCsv(url + "kgrams.csv");
   }
 
   // Reference to other stores.
   const fileStore = useFileStore();
 
   // Hydrate the store
-  async function hydrate(): Promise<void> {
+  async function hydrate(url?: string): Promise<void> {
     // Make sure the file store is hydrated.
     if (!fileStore.hydrated) {
       throw new Error(
@@ -54,7 +54,7 @@ export const useKgramStore = defineStore("kgrams", () => {
       );
     }
 
-    kgrams.value = parse(await fetch(), fileStore.filesById);
+    kgrams.value = parse(await fetch(url), fileStore.filesById);
     hydrated.value = true;
   }
 
