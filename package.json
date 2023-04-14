@@ -3,8 +3,8 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "cli/",
-    "web/",
-    "lib/"
+    "cli",
+    "web",
+    "lib"
   ]
 }
