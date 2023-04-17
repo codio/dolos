@@ -406,7 +406,7 @@ jobs:
     - name: push app image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: codio/parameters_generation
+        ECR_REPOSITORY: codio/dolos
         IMAGE_TAG: ${{ github.sha }}
         BRANCH: ${{ steps.get-branch.outputs.branch }}
       run: |
@@ -418,7 +418,7 @@ jobs:
     - name: push app dev version
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: codio/parameters_generation
+        ECR_REPOSITORY: codio/dolos
       run: |
         docker tag tmp_app_img $ECR_REGISTRY/$ECR_REPOSITORY:dev
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev
