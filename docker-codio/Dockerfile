@@ -25,7 +25,7 @@ COPY package.json ./
 COPY yarn.lock ./
 RUN yarn install --frozen-lockfile
 
-RUN npm link 
+# RUN npm link 
 
 RUN apk --no-cache del python3 build-base
 
