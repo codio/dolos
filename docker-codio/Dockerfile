@@ -23,7 +23,7 @@ COPY cli/package.json ./
 WORKDIR /dolos-app
 COPY package.json ./
 COPY yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install --production
 
 # RUN npm link 
 
