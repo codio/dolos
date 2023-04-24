@@ -42,6 +42,16 @@ export default async function runServer(
   }
   app.use(express.static(path.dirname(assets())));
 
+  app.get("/check", function (_, res) {
+    const checkResponse = {
+      up_time: Math.floor(process.uptime())
+    };
+
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(checkResponse));
+  });
+
   const server = http.createServer(app);
   const serverStarted: Promise<void> = new Promise((r, e) => {
     server.on("listening", r);
