@@ -6,26 +6,21 @@ WORKDIR /dolos-app/lib/dist
 COPY lib/dist .
 WORKDIR /dolos-app/lib
 COPY lib/package.json ./
-# RUN yarn build --force
 
 WORKDIR /dolos-app/web/dist
 COPY web/dist .
 WORKDIR /dolos-app/web
 COPY web/package.json ./
-# RUN yarn build
 
 WORKDIR /dolos-app/cli/dist
 COPY cli/dist .
 WORKDIR /dolos-app/cli
 COPY cli/package.json ./
-# RUN yarn build --force
 
 WORKDIR /dolos-app
 COPY package.json ./
 COPY yarn.lock ./
 RUN yarn install --production
-
-# RUN npm link 
 
 RUN apk --no-cache del python3 build-base
 

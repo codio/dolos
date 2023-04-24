@@ -3,8 +3,6 @@ import { default as express, Express } from "express";
 import http from "http";
 import path from "path";
 import open from "open";
-// import https from "https";
-// import fs from "fs";
 
 function assets(): string {
   try {
