@@ -25,8 +25,8 @@ export const useMetadataStore = defineStore("metadata", () => {
   async function fetch(
     url: string = DATA_URL
   ): Promise<any[]> {
-    url = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
-    return await parseCsv(url + "metadata.csv");
+    const sanitized = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
+    return await parseCsv(sanitized + "metadata.csv");
   }
 
   // Hydrate the store

@@ -39,8 +39,8 @@ export const useKgramStore = defineStore("kgrams", () => {
   async function fetch(
     url: string = DATA_URL
   ): Promise<any[]> {
-    url = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
-    return await parseCsv(url + "kgrams.csv");
+    const sanitized = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
+    return await parseCsv(sanitized + "kgrams.csv");
   }
 
   // Reference to other stores.

@@ -83,8 +83,8 @@ export const useFileStore = defineStore("file", () => {
   async function fetch(
     url: string = DATA_URL
   ): Promise<any[]> {
-    url = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
-    return await parseCsv(url + "files.csv");
+    const sanitized = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
+    return await parseCsv(sanitized + "files.csv");
   }
 
   // Parse the files from a CSV string.
