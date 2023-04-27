@@ -27,4 +27,4 @@ RUN apk --no-cache del python3 build-base
 EXPOSE 3000/tcp
 
 WORKDIR /dolos
-ENTRYPOINT [ "node", "/dolos-app/cli/dist/cli.js" ]
+ENTRYPOINT [ "nice", "-n", "15", "node", "/dolos-app/cli/dist/cli.js" ]
