@@ -201,8 +201,11 @@ const settings = shallowRef(false);
 // Current version of the application.
 const version = computed(() => packageJson.version);
 
+const urlSearch = new URLSearchParams(window.location.search);
+const dolosReport = urlSearch.get("url");
+
 // Hydrate all the stores (fetch all the data).
-api.hydrate();
+api.hydrate(dolosReport || undefined);
 
 // Hydrate the breadcrumbs store.
 useBreadcrumbStore();

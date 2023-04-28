@@ -181,75 +181,6 @@ jobs:
           cd lib/
           yarn lint
 
-
-  web-build-deploy:
-    name: "Web 🌐 - build & deploy 🔧"
-    runs-on: ubuntu-latest
-    needs: install-deps
-    strategy:
-      matrix:
-        node: [ "16", "18" ]
-      fail-fast: false
-    steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
-
-      - name: Setup Node 📚
-        uses: actions/setup-node@v3.6.0
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Fetch Dependencies ⚡️
-        id: cache-dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ github.workspace }}/node_modules
-            ${{ github.workspace }}/*/node_modules
-          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/package.json') }}
-
-      - name: Check if cache was hit 🔎
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
-        run: |
-          echo "Should have hit cache"
-          false
-
-      - name: Build lib 🔧
-        run: |
-          cd lib/
-          yarn build
-
-      - name: Build web 🔧
-        run: |
-          cd web/
-          yarn build --skip-plugins eslint
-
-      - name: Deploy to staging 🚀
-        if: ${{ matrix.node == '18' }}
-        run: |
-          if [ -n "$KNOWN_HOSTS" ]; then
-            cd web/
-            mkdir -p ~/.ssh
-            echo "$SSH_KEY" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-            echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-            chmod 600 ~/.ssh/known_hosts
-            mkdir -p "deploy/$REF"
-            cp -a dist/. "deploy/$REF"
-            rsync -glpPrtvz \
-                  --relative \
-                  --delete  \
-                  -e 'ssh -p 4840' \
-                  "deploy/./$REF" \
-                  "dodona@dolos.ugent.be:web/"
-          else
-            echo "Skipping deploy because secrets are not available"
-          fi
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
-          REF: ${{ github.ref_name }}
-
   web-lint:
     name: "Web 🌐 - lint 📏"
     runs-on: ubuntu-latest
@@ -287,56 +218,10 @@ jobs:
           cd web/
           yarn lint
 
-  docs:
-    name: "Docs 📑"
+  build-docker:
+    name: "Build docker"
     runs-on: ubuntu-latest
     needs: install-deps
-    strategy:
-      matrix:
-        node:  [ "18" ]
-      fail-fast: false
-    steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
-
-      - name: Setup Node 📚
-        uses: actions/setup-node@v3.6.0
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Build 🔧
-        run: |
-          cd docs/
-          yarn install
-          yarn build
-
-      - name: Deploy 🚀
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          if [ -n "$KNOWN_HOSTS" ]; then
-            cd docs/
-            mkdir -p ~/.ssh
-            echo "$SSH_KEY" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-            echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-            chmod 600 ~/.ssh/known_hosts
-            rsync -glpPrtvz \
-                  --delete  \
-                  -e 'ssh -p 4840' \
-                  .vuepress/dist/ \
-                  dodona@dolos.ugent.be:docs
-          else
-            echo "Skipping deploy because secrets are not available"
-          fi
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
-
-  publish:
-    name: "Publish packages on NPM 📦"
-    runs-on: ubuntu-latest
-    needs: install-deps
-    if: startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix:
         node:  [ "18" ]
@@ -394,24 +279,10 @@ jobs:
           echo "Should have hit cache"
           false
 
-      - name: Parse tag
-        id: parse_tag
-        run: "echo ${{ github.ref }} | sed 's#^refs/tags/#version=#' >> $GITHUB_OUTPUT"
-
-      - name: Draft release
-        id: create_release
-        uses: release-drafter/release-drafter@v5
-        with:
-          name: ${{ steps.parse_tag.outputs.version }}
-          tag: ${{ steps.parse_tag.outputs.version }}
-          version: ${{ steps.parse_tag.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build lib 🔧
         run: |
           cd lib/
-          yarn build
+          yarn build --force
 
       - name: Build CLI 🔧
         run: |
@@ -423,144 +294,53 @@ jobs:
           cd web/
           yarn build
 
-      - name: Publish @dodona/dolos-lib to NPM
-        uses: JS-DevTools/npm-publish@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          token: ${{ secrets.NPM_AUTH_TOKEN }}
-          package: ./lib/package.json
-          check-version: true
-          access: public
+          aws-access-key-id: ${{ secrets.ECR_UPLOADER_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_UPLOADER_SECRET }}
+          aws-region: us-east-1
 
-      - name: Publish @dodona/dolos-web to NPM
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_AUTH_TOKEN }}
-          package: ./web/package.json
-          check-version: true
-          access: public
+      - name: Get Current Branch
+        id: get-branch
+        uses: codio/get-branch-name-github-action@v1
 
-      - name: Publish @dodona/dolos to NPM
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_AUTH_TOKEN }}
-          package: ./cli/package.json
-          check-version: true
-          access: public
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-  demo:
-    name: "Publish demo 🚀"
-    needs: publish
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [ "18" ]
-      fail-fast: false
-    steps:
-      - name: Setup Node 📚
-        uses: actions/setup-node@v3.6.0
-        with:
-          node-version: ${{ matrix.node }}
+      - name: app Docker build
+        run: docker build -t tmp_app_img --file ./docker-codio/Dockerfile .
 
-      - name: Install dolos
-        run: |
-          npm install -g @dodona/dolos
-          dolos --version
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
+      - name: push app image to Amazon ECR
         env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
-
-      - name: Prepare analysis
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: codio/dolos
+          IMAGE_TAG: ${{ github.sha }}
+          BRANCH: ${{ steps.get-branch.outputs.branch }}
         run: |
-          mkdir analysis
-          cd analysis
-          rsync \
-              -e 'ssh -p 4840' \
-              dodona@dolos.ugent.be:demo-datasets.zip \
-              .
-          unzip demo-datasets.zip
+          docker tag tmp_app_img $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag tmp_app_img $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH
 
-      - name: Run analysis on samples
+      - name: push app dev version
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: codio/dolos
         run: |
-          cd analysis
-          dolos -l javascript -f csv -o samples-results samples/info.csv
+          docker tag tmp_app_img $ECR_REGISTRY/$ECR_REPOSITORY:dev
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev
+        if: ${{ steps.get-branch.outputs.branch == 'master' }}
 
-      - name: Run analysis on SOCO Java
-        run: |
-          cd analysis
-          dolos -l java -f csv -o java-results soco/java-labels.csv
+      - name: Logout of Amazon ECR
+        if: always()
+        run: docker logout ${{ steps.login-ecr.outputs.registry }}
 
-      - name: Run analysis on SOCO C
-        run: |
-          cd analysis
-          dolos -l c -f csv -o c-results soco/c-labels.csv
-
-      - name: Run analysis on Pyramidal constants exercise
-        run: |
-          cd analysis
-          dolos -l python -f csv -o pyramidal-exercise-results "exercise - Pyramidal constants/info.csv"
-
-      - name: Run analysis on Pyramidal constants evaluation
-        run: |
-          cd analysis
-          dolos -l python -f csv -o pyramidal-evaluation-results "evaluation - Pyramidal constants/info.csv"
-
-      - name: Deploy results to demo site
-        run: |
-          cd analysis
-          npm pack @dodona/dolos-web
-          tar xzf dodona-dolos-web-*.tgz
-          mkdir -p demo/sample
-          mkdir -p demo/soco
-          mkdir -p demo/pyramidal-constants/exercise
-          mkdir -p demo/pyramidal-constants/evaluation
-          cp -r package/dist/. demo/sample
-          cp -r package/dist/. demo/soco/java
-          cp -r package/dist/. demo/soco/c
-          cp -r package/dist/. demo/pyramidal-constants/exercise
-          cp -r package/dist/. demo/pyramidal-constants/evaluation
-          cp -r samples-results demo/sample/data
-          cp -r java-results demo/soco/java/data
-          cp -r c-results demo/soco/c/data
-          cp -r pyramidal-exercise-results demo/pyramidal-constants/exercise/data
-          cp -r pyramidal-evaluation-results demo/pyramidal-constants/evaluation/data
-          rsync -glpPrtvz \
-             -e 'ssh -p 4840' \
-             demo/ \
-             dodona@dolos.ugent.be:demo
-
-  docker:
-    name: "Publish docker container 🚢"
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
-
-      - name: Setup Node 📚
-        uses: actions/setup-node@v3.6.0
+      - name: Slack
+        uses: codio/codio-slack-action@master
         with:
-          node-version: ${{ matrix.node }}
-
-      - name: Parse tag (without v)
-        id: parse_tag
-        run: "echo ${{ github.ref }} | sed 's#^refs/tags/v#version=#' >> $GITHUB_OUTPUT"
-
-      - name: Build the new image
-        run: docker build docker/ -t ghcr.io/dodona-edu/dolos:${{ steps.parse_tag.outputs.version }}
-
-      - name: Login to the container registry
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-
-      - name: Tag the new image with latest
-        run: docker tag ghcr.io/dodona-edu/dolos:${{ steps.parse_tag.outputs.version }} ghcr.io/dodona-edu/dolos:latest
-
-      - name: Push the new image
-        run: docker push --all-tags ghcr.io/dodona-edu/dolos
+          slack_hook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          message: "<https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}|${{ github.workflow }} build-push> for ${{ github.repository }} by ${{ github.actor }} has ${{ job.status }} on branch ${{ github.ref }}"
+          success: ${{ job.status }}
+        if: always()

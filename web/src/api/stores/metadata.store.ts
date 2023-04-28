@@ -23,14 +23,15 @@ export const useMetadataStore = defineStore("metadata", () => {
 
   // Fetch the metadata from the CSV file.
   async function fetch(
-    url: string = DATA_URL + "metadata.csv"
+    url: string = DATA_URL
   ): Promise<any[]> {
-    return await parseCsv(url);
+    const sanitized = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
+    return await parseCsv(sanitized + "metadata.csv");
   }
 
   // Hydrate the store
-  async function hydrate(): Promise<void> {
-    metadata.value = parse(await fetch());
+  async function hydrate(url?: string): Promise<void> {
+    metadata.value = parse(await fetch(url));
     hydrated.value = true;
   }
 

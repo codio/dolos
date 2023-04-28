@@ -86,19 +86,20 @@ export const usePairStore = defineStore("pairs", () => {
 
   // Fetch the pairs from the CSV file.
   async function fetch(
-    url: string = DATA_URL + "pairs.csv"
+    url: string = DATA_URL
   ): Promise<any[]> {
-    return await parseCsv(url);
+    const sanitized = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
+    return await parseCsv(sanitized + "pairs.csv");
   }
 
   // Hydrate the store
-  async function hydrate(): Promise<void> {
+  async function hydrate(url?: string): Promise<void> {
     // Make sure the file store is hydrated.
     if (!fileStore.hydrated) {
       throw new Error("The file store must be hydrated before the pair store.");
     }
 
-    pairsById.value = parse(await fetch(), fileStore.filesActiveById);
+    pairsById.value = parse(await fetch(url), fileStore.filesActiveById);
     hydrated.value = true;
   }
 

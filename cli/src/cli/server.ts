@@ -27,7 +27,7 @@ export interface Options {
 }
 
 export default async function runServer(
-  reportDir: string,
+  reportDir: string | null,
   options: Options
 ): Promise<void> {
   const port = options.port || DEFAULT_PORT;
@@ -35,8 +35,20 @@ export default async function runServer(
   const openInBrowser = options.open == undefined ? true : options.open;
 
   const app: Express = express();
-  app.use("/data", express.static(reportDir));
+  if (reportDir !== null) {
+    app.use("/data", express.static(reportDir));
+  }
   app.use(express.static(path.dirname(assets())));
+
+  app.get("/check", function (_, res) {
+    const checkResponse = {
+      up_time: Math.floor(process.uptime())
+    };
+
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(checkResponse));
+  });
 
   const server = http.createServer(app);
   const serverStarted: Promise<void> = new Promise((r, e) => {
