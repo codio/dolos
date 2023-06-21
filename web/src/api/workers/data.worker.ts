@@ -26,17 +26,18 @@ function parseFragments(
       right: dolosFragment.rightSelection,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       data: dolosFragment.mergedData!,
-      occurrences: dolosFragment.pairs.map((occurrence): PairedOccurrence => {
+      occurrences: dolosFragment.pairs.map((occurrence): PairedOccurrence | undefined => {
         const kgram = kmersMap.get(occurrence.fingerprint.hash);
         if (kgram === undefined) {
-          throw new Error(`Kgram hash not found: ${occurrence}`);
+          console.log(`Kgram hash not found: ${occurrence}`);
+          return undefined
         }
         return {
           kgram,
           left: occurrence.left,
           right: occurrence.right,
         };
-      }),
+      }).flatMap(f => f ? [f] : []),
     };
   });
 }
