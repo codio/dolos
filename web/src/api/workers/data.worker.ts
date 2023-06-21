@@ -30,7 +30,7 @@ function parseFragments(
         const kgram = kmersMap.get(occurrence.fingerprint.hash);
         if (kgram === undefined) {
           console.log(`Kgram hash not found: ${occurrence}`);
-          return undefined
+          return undefined;
         }
         return {
           kgram,
