@@ -19,27 +19,34 @@ function parseFragments(
   dolosFragments: DolosFragment[],
   kmersMap: Map<Hash, Kgram>
 ): Fragment[] {
-  return dolosFragments.map((dolosFragment: DolosFragment): Fragment => {
-    return {
-      active: true,
-      left: dolosFragment.leftSelection,
-      right: dolosFragment.rightSelection,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      data: dolosFragment.mergedData!,
-      occurrences: dolosFragment.pairs.map((occurrence): PairedOccurrence | undefined => {
-        const kgram = kmersMap.get(occurrence.fingerprint.hash);
-        if (kgram === undefined) {
-          console.log(`Kgram hash not found: ${occurrence}`);
-          return undefined;
-        }
-        return {
-          kgram,
-          left: occurrence.left,
-          right: occurrence.right,
-        };
-      }).flatMap(f => f ? [f] : []),
-    };
-  });
+  return dolosFragments.map((dolosFragment: DolosFragment): Fragment | undefined => {
+    const occurrences = dolosFragment.pairs.map((occurrence): PairedOccurrence | undefined => {
+      const kgram = kmersMap.get(occurrence.fingerprint.hash);
+      if (kgram === undefined) {
+        console.log(`Kgram hash not found: ${occurrence}`);
+        return undefined;
+      }
+      return {
+        kgram,
+        left: occurrence.left,
+        right: occurrence.right,
+      };
+    });
+    const filtered = occurrences.flatMap(f => f ? [f] : []);
+    if (filtered.length > 0) {
+      return {
+        active: true,
+        left: dolosFragment.leftSelection,
+        right: dolosFragment.rightSelection,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        data: dolosFragment.mergedData!,
+        occurrences: filtered,
+      };
+    } else {
+      return undefined;
+    }
+    
+  }).flatMap(f => f ? [f] : []);
 }
 
 // Populate the fragments for a given pair.
