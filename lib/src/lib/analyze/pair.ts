@@ -53,7 +53,7 @@ export class Pair extends Identifiable {
     }
 
     this.shared = this.shared
-      .filter((k: SharedFingerprint) => k.fileCount() <= this.kgramMaxFileOccurrences);
+      .filter((k: SharedFingerprint) => k.fileCount() <= kgramMaxFileOccurrences);
 
     const left: Kgram[] = [];
     const right: Kgram[] = [];
