@@ -105,7 +105,7 @@ test("paired occurrence merging & squashing", t => {
     createOccurrence(right, 1),
   ]);
 
-  const pair = new Pair(left, right);
+  const pair = new Pair(left, right, Number.POSITIVE_INFINITY);
 
   t.is(pair.leftCovered, 12);
   t.is(pair.rightCovered, 10);
