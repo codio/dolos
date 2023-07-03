@@ -56,6 +56,8 @@ async function populateFragments(
   kgrams: Kgram[],
 ): Promise<Pair> {
   const customOptions = metadata;
+  delete customOptions.maxFingerprintCount;
+  delete customOptions.maxFingerprintPercentage;
   const kmers = kgrams;
 
   const options = new Options(customOptions);
