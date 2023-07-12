@@ -40,7 +40,7 @@ export class Report {
 
 
   public getPair(file1: TokenizedFile, file2: TokenizedFile): Pair {
-    return new Pair(file1, file2);
+    return new Pair(file1, file2, this.kgramMaxFileOccurrences);
   }
 
   public allPairs(): Array<Pair> {

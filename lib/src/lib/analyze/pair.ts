@@ -31,7 +31,9 @@ export class Pair extends Identifiable {
 
   constructor(
     public readonly leftFile: TokenizedFile,
-    public readonly rightFile: TokenizedFile
+    public readonly rightFile: TokenizedFile,
+    // maximum amount of files a kgram can occur in a file before it is ignored
+    public readonly kgramMaxFileOccurrences: number,
   ) {
     super();
     let small, large;
@@ -49,6 +51,9 @@ export class Pair extends Identifiable {
         this.shared.push(fingeprint);
       }
     }
+
+    this.shared = this.shared
+      .filter((k: SharedFingerprint) => k.fileCount() <= kgramMaxFileOccurrences);
 
     const left: Kgram[] = [];
     const right: Kgram[] = [];
