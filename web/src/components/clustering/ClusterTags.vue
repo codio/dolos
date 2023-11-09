@@ -13,6 +13,7 @@ import { useElementSize } from "@vueuse/core";
 import { File } from "@/api/models";
 import { useD3Tooltip } from "@/composables";
 import * as d3 from "d3";
+import debounce from "lodash.debounce";
 
 interface Props {
   currentFiles: File[];
@@ -102,7 +103,8 @@ const draw = (): void => {
 // Update the list when the files change.
 watch(() => props.currentFiles, () => draw());
 // Update the list when the width changes.
-watch(width, () => draw());
+const debouncedDraw = debounce(draw, 100);
+watch(width, () => debouncedDraw());
 
 onMounted(() => {
   listElement.value?.prepend(list.node() ?? "");

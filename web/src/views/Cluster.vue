@@ -53,6 +53,10 @@
               </div>
             </v-card-text>
 
+            <v-card-text v-else-if="tooManyFiles">
+              <b>Too many objects to compare.</b>
+            </v-card-text>
+
             <v-card-text v-else>
               <time-series
                 :cluster="cluster"
@@ -71,7 +75,10 @@
             <v-card-subtitle>
               Visual representation of submissions in the same cluster.
             </v-card-subtitle>
-            <v-card-text>
+            <v-card-text v-if="tooManyFiles">
+              <b>Too many objects to compare.</b>
+            </v-card-text>
+            <v-card-text v-else>
               <graph
                 :pairs="clusterPairs"
                 :files="clusterFiles"
@@ -95,7 +102,10 @@
             <v-card-subtitle>
               Visualization of the pairs within this cluster, darker is more similar.
             </v-card-subtitle>
-            <v-card-text>
+            <v-card-text v-if="tooManyFiles">
+              <b>Too many objects to compare.</b>
+            </v-card-text>
+            <v-card-text v-else>
               <heat-map
                 :cluster="cluster"
                 :height="500"
@@ -135,7 +145,7 @@ const router = useRouter();
 const fileStore = useFileStore();
 const pairStore = usePairStore();
 const cluster = computed(() => pairStore.getClusterById(+props.clusterId));
-const { hasTimestamps } = storeToRefs(fileStore);
+const { hasTimestamps, tooManyFiles } = storeToRefs(fileStore);
 const { clustering } = storeToRefs(pairStore);
 const { clusterFiles, clusterPairs } = useCluster(cluster);
 const legend = usePartialLegend(clusterFiles);

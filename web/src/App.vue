@@ -54,7 +54,7 @@
           <v-list-item-title>View by clusters</v-list-item-title>
         </v-list-item>
 
-        <v-list-item to="/graph" link  exact>
+        <v-list-item to="/graph" link  exact v-if="!tooManyFiles">
           <v-list-item-icon>
             <v-icon>mdi-graph-outline</v-icon>
           </v-list-item-icon>
@@ -191,7 +191,7 @@ const breakpoints = useBreakpoints();
 const api = useApiStore();
 const files = useFileStore();
 const { isLoaded, isAnonymous, loadingText } = storeToRefs(api);
-const { hasLabels } = storeToRefs(files);
+const { hasLabels, tooManyFiles } = storeToRefs(files);
 
 // If the drawer is open/closed.
 const drawer = shallowRef(breakpoints.value.desktop);

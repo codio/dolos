@@ -101,6 +101,9 @@
               <v-card-text v-if="!cluster">
                 Submission is not part of any cluster.
               </v-card-text>
+              <v-card-text v-else-if="tooManyFiles">
+                Too many objects to compare.
+              </v-card-text>
               <v-card-text v-else>
                 <graph
                   :pairs="clusterPairs"
@@ -183,7 +186,7 @@ const props = withDefaults(defineProps<Props>(), {});
 const router = useRouter();
 const fileStore = useFileStore();
 const pairStore = usePairStore();
-const { legend, hasTimestamps, hasLabels, filesById } = storeToRefs(fileStore);
+const { legend, hasTimestamps, hasLabels, filesById, tooManyFiles } = storeToRefs(fileStore);
 const { clustering } = storeToRefs(pairStore);
 
 // Get the file by id.

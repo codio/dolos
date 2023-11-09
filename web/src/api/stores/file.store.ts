@@ -7,6 +7,7 @@ import { names, animals, uniqueNamesGenerator } from "unique-names-generator";
 import { commonFilenamePrefix, parseCsv } from "../utils";
 import { FileInterestingnessCalculator, FileScoring, SimilarityScore } from "@/util/FileInterestingness";
 
+const MAX_ELEMENTS = 20;
 
 /**
  * Store containing the file data & helper functions.
@@ -26,6 +27,7 @@ export const useFileStore = defineStore("file", () => {
   const hasLabels = shallowRef(false);
   const hasUnlabeled = shallowRef(false);
   const hasTimestamps = shallowRef(false);
+  const tooManyFiles = shallowRef(false);
 
   const filesActiveById = shallowRef<File[]>([]);
   const filesActiveList = computed<File[]>(() => Object.values(filesActiveById.value));
@@ -78,6 +80,7 @@ export const useFileStore = defineStore("file", () => {
     hasUnlabeled.value = parsed.hasUnlabeled;
     hasTimestamps.value = parsed.hasTimestamps;
     hydrated.value = true;
+    tooManyFiles.value = parsed.files.length > MAX_ELEMENTS;
   }
 
   async function fetch(
@@ -258,6 +261,7 @@ export const useFileStore = defineStore("file", () => {
     hasLabels,
     hasUnlabeled,
     labelFilesCount,
+    tooManyFiles
   };
 
 });
