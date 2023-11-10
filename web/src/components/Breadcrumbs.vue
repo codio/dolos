@@ -1,24 +1,21 @@
 <template>
   <div class="breadcrumbs">
-    <v-btn icon color="primary" small exact :to="backItem">
-      <v-icon>mdi-chevron-left</v-icon>
-    </v-btn>
+    <v-btn color="primary" variant="text" icon="mdi-chevron-left" size="x-small" exact :to="backItem" />
     <v-breadcrumbs class="breadcrumbs-items" :items="items" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useRoute } from "@/composables";
 import { useBreadcrumbStore } from "@/stores";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
-import { Route } from "vue-router";
+import { RouteLocationRaw, useRoute } from "vue-router";
 
 interface Props {
-  // Current page information (override)
-  currentOverride?: Partial<Route>;
-  // Previous page information (fallback)
-  previousFallback?: Partial<Route>;
+  currentText?: string;
+  currentTo?: RouteLocationRaw;
+  previousFallbackText?: string;
+  previousFallbackTo?: RouteLocationRaw;
 }
 
 const props = withDefaults(defineProps<Props>(), {});
@@ -27,27 +24,29 @@ const breadcrumbs = useBreadcrumbStore();
 const { previousPage } = storeToRefs(breadcrumbs);
 
 // Breadcrumb items
-const items = computed(() => {
+const items = computed<any>(() => {
   const items = [];
 
   if (previousPage.value) {
     items.push({
-      text: previousPage.value.name,
+      exact: true,
+      title: previousPage.value.name,
       to: previousPage.value,
-      exact: true,
     });
-  } else if (props.previousFallback) {
+  } else if (props.previousFallbackText && props.previousFallbackTo) {
     items.push({
-      text: props.previousFallback.name,
-      to: props.previousFallback,
       exact: true,
+      title: props.previousFallbackText,
+      to: props.previousFallbackTo,
     });
   }
 
-  if (route.value) {
+
+  if (route) {
     items.push({
-      text: props.currentOverride?.name ?? route.value.name,
-      to: props.currentOverride?.path ?? route.value.path,
+      exact: true,
+      title: props.currentText ?? route.name?.toString() ?? "#",
+      to: props.currentTo ?? route,
       disabled: true,
     });
   }
@@ -57,7 +56,7 @@ const items = computed(() => {
 
 // Back navigation
 const backItem = computed(() => {
-  return items.value[items.value.length - 2].to;
+  return items?.value?.[items.value.length - 2]?.to;
 });
 </script>
 
@@ -66,6 +65,10 @@ const backItem = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+
+  :deep(a) {
+    color: rgb(var(--v-theme-primary));
+  }
 
   &-items {
     padding: 0;

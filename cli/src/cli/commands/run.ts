@@ -3,14 +3,14 @@ import {
   setLogging,
   tryCatch,
   warning
-} from "../util/utils";
+} from "../util/utils.js";
 
-import { DEFAULT_HOST, DEFAULT_PORT } from "../server";
-import { TerminalView } from "../views/terminalView";
-import { FileView } from "../views/fileView";
-import { WebView } from "../views/webView";
+import { DEFAULT_HOST, DEFAULT_PORT } from "../server.js";
+import { TerminalView } from "../views/terminalView.js";
+import { FileView } from "../views/fileView.js";
+import { WebView } from "../views/webView.js";
 import { Command } from "commander";
-import * as Utils from "../util/utils";
+import * as Utils from "../util/utils.js";
 import { Dolos, Options } from "@dodona/dolos-lib";
 
 export function runCommand(program: Command): Command {
@@ -21,6 +21,10 @@ export function runCommand(program: Command): Command {
       "a CSV-file, or a zip-file with a top level info.csv file."
     )
     .description("Run an analysis and show the results.")
+    .option(
+      "-n, --name <name>",
+      "Resulting name of the report. Dolos tries to pick a sensible name if not given."
+    )
     .option(
       "-l, --language <language>",
       Utils.indent(
@@ -159,6 +163,7 @@ export function runCommand(program: Command): Command {
 }
 
 interface RunOptions extends Options {
+  name: string,
   verbose: boolean
   compare: boolean;
   open: boolean;
@@ -181,6 +186,7 @@ export async function run(locations: string[], options: RunOptions): Promise<voi
 
   await tryCatch(options.verbose, async () => {
     const dolos = new Dolos({
+      reportName: options.name,
       kgramData: options.compare,
       kgramLength: options.kgramLength,
       kgramsInWindow: options.kgramsInWindow,
@@ -194,6 +200,10 @@ export async function run(locations: string[], options: RunOptions): Promise<voi
       fragmentSortBy: options.fragmentSortBy,
     });
     const report = await dolos.analyzePaths(locations);
+
+    if (report.warnings.length > 0) {
+      report.warnings.forEach(warn => warning(warn));
+    }
 
     const view = closestMatch(options.outputFormat, {
       "terminal": () => new TerminalView(report, options),

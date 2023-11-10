@@ -1,21 +1,8 @@
-import { error } from "./util/utils";
+
 import { default as express, Express } from "express";
 import http from "http";
-import path from "path";
 import open from "open";
-
-function assets(): string {
-  try {
-    return require.resolve("@dodona/dolos-web");
-  } catch (e) {
-    if (e.code === "MODULE_NOT_FOUND") {
-      error("Module '@dodona/dolos-web' was not found on your system, " +
-        "but it is required to run the web server.\n" +
-        "Please install it to view the results in your browser.");
-    }
-    throw e;
-  }
-}
+import { webroot } from "@dodona/dolos-web";
 
 export const DEFAULT_PORT = 3000;
 export const DEFAULT_HOST = "localhost";

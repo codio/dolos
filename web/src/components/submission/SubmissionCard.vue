@@ -1,5 +1,8 @@
 <template>
-  <v-card class="submission-card" :to="`/submissions/${file.id}`">
+  <v-card
+    class="submission-card"
+    :to="{ name: 'submissions', params: { fileId: file.id } }"
+  >
     <v-row align="center" justify="space-between">
       <v-col>
         <v-card-title>
@@ -8,12 +11,12 @@
 
         <v-card-subtitle>
           <div class="submission-card-info" v-if="hasLabels">
-            <v-icon :color="label.color" small>mdi-label-outline</v-icon>
+            <v-icon :color="label.color" size="small">mdi-label-outline</v-icon>
             <label-text :label="label.name" :color="label.color" colored />
           </div>
 
           <div class="submission-card-info">
-            <v-icon small>mdi-file-document-outline</v-icon>
+            <v-icon size="small">mdi-file-document-outline</v-icon>
             <span>{{ props.file.shortPath }}</span>
           </div>
         </v-card-subtitle>

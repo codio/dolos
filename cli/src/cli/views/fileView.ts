@@ -1,4 +1,4 @@
-import { View } from "./view";
+import { View } from "./view.js";
 import { stringify } from "csv-stringify";
 import { Writable } from "stream";
 import { createWriteStream, promises as fs } from "fs";
@@ -6,7 +6,7 @@ import {
   Report,
   Pair,
   SharedFingerprint,
-  TokenizedFile
+  FileEntry
 } from "@dodona/dolos-lib";
 
 function writeCSVto<T>(
@@ -43,7 +43,13 @@ export class FileView extends View {
   constructor(protected report: Report, options: Options) {
     super();
     this.outputDestination =
-      options.outputDestination || `dolos-report-${ new Date().toISOString().replace(/[.:-]/g, "") }`;
+      options.outputDestination || this.createName();
+  }
+
+  private createName(): string {
+    const dashedName = this.report.name.replace(/ /g, "-").replace(/[^a-zA-Z0-9-]/g, "");
+    const timestamp = new Date().toISOString().replace(/[.:-]/g, "");
+    return `dolos-report-${ timestamp }-${ dashedName }`;
   }
 
   public writePairs(out: Writable): void {
@@ -77,17 +83,17 @@ export class FileView extends View {
   }
 
   public writeFiles(out: Writable): void {
-    writeCSVto<TokenizedFile>(
+    writeCSVto<FileEntry>(
       out,
-      this.report.files,
+      this.report.entries(),
       {
-        "id": f => f.id,
-        "path": f => f.path,
-        "content": f => f.content,
+        "id": f => f.file.id,
+        "path": f => f.file.path,
+        "content": f => f.file.content,
         "amountOfKgrams": f => f.kgrams.length,
-        "ast": f => JSON.stringify(f.ast),
-        "mapping": f => JSON.stringify(f.mapping),
-        "extra": f => JSON.stringify(f.extra)
+        "ast": f => JSON.stringify(f.file.tokens),
+        "mapping": f => JSON.stringify(f.file.mapping),
+        "extra": f => JSON.stringify(f.file.extra)
       });
   }
 
@@ -105,6 +111,9 @@ export class FileView extends View {
 
   async writeToDirectory(): Promise<string> {
     const dirName = this.outputDestination;
+    if (await fs.stat(dirName).catch(() => false)) {
+      throw new Error(`Directory ${dirName} already exists. Please specify a different output destination.`);
+    }
     await fs.mkdir(dirName, { recursive: true });
 
     console.log(`Writing results to directory: ${dirName}`);

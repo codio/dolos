@@ -1,6 +1,6 @@
 <template>
-  <v-simple-table class="labels" fixed-header dense>
-    <thead>
+  <v-table class="labels" height="300px" fixed-header density="compact">
+    <thead class="labels-table-header">
       <tr>
         <th>Label</th>
         <th v-if="props.showSubmissions">Submissions</th>
@@ -10,26 +10,26 @@
 
     <tbody>
       <template v-if="hasLabels">
-        <tr v-for="( label, index ) of labels" :key="index">
-          <td class="d-flex align-center">
-            <label-dot
-              :label="label.name"
-              :color="label.color"
-            />
+        <tr v-for="(label, index) of labels" :key="index">
+          <td>
+            <div class="d-flex align-center">
+              <label-dot :label="label.name" :color="label.color" />
 
-            <span class="ml-2">{{ label.name }}</span>
+              <span class="ml-2">{{ label.name }}</span>
+            </div>
           </td>
 
           <td v-if="props.showSubmissions">
-            {{ labelFilesCount.get(label) }}
+            {{ labelFilesCount.get(label.name) }}
           </td>
 
           <td class="text-end">
             <v-switch
               v-model="label.selected"
-              class="labels-switch"
+              color="primary"
+              density="compact"
               inset
-              small
+              hide-details
             />
           </td>
         </tr>
@@ -38,14 +38,16 @@
       <template v-else>
         <tr>
           <td colspan="3" class="py-4">
-            The dataset you analyzed did not contain labels.
-            Learn how to add metadata
-            <a href="https://dolos.ugent.be/guide/dodona.html" target="_blank">here</a>.
+            The dataset you analyzed did not contain labels. Learn how to add
+            metadata
+            <a href="https://dolos.ugent.be/guide/dodona.html" target="_blank"
+              >here</a
+            >.
           </td>
         </tr>
       </template>
     </tbody>
-  </v-simple-table>
+  </v-table>
 </template>
 
 <script lang="ts" setup>
@@ -62,30 +64,7 @@ const { labels, labelFilesCount, hasLabels } = storeToRefs(fileStore);
 </script>
 
 <style lang="scss" scoped>
-.labels {
-  &-switch {
-    margin-top: 0;
-
-    :deep(.v-input--switch__track) {
-      height: 22px;
-    }
-
-    :deep(.v-input--switch__thumb),
-    :deep(.v-input--selection-controls__ripple) {
-      height: 14px;
-      width: 14px;
-    }
-
-    :deep(.v-input--selection-controls__ripple) {
-      height: 24px;
-      width: 24px;
-      left: -12px;
-      top: -10px;
-    }
-
-    :deep(.v-input__slot) {
-      margin-bottom: 0;
-    }
-  }
+.labels-table-header {
+  z-index: 2;
 }
 </style>

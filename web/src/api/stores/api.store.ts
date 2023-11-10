@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
+import { useAppMode } from "@/composables";
 import { shallowRef, watch } from "vue";
-import { guessSimilarityThreshold } from "@/api/utils";
 import {
   useFileStore,
   useKgramStore,
@@ -8,6 +8,7 @@ import {
   usePairStore,
 } from "@/api/stores";
 import { refDebounced } from "@vueuse/shared";
+import { guessSimilarityThreshold } from "../utils";
 
 /**
  * Store managing the API.
@@ -20,9 +21,11 @@ export const useApiStore = defineStore("api", () => {
   const pairStore = usePairStore();
 
   // If the data is loaded.
-  const isLoaded = shallowRef(false);
+  const loading = shallowRef(true);
   // Loading text.
   const loadingText = shallowRef("Loading...");
+  // Error while loading.
+  const error = shallowRef();
 
   // Whether the names should be anonymized.
   const isAnonymous = shallowRef(false);
@@ -34,38 +37,45 @@ export const useApiStore = defineStore("api", () => {
 
   // Hydrate the API stores.
   const hydrate = async (url?: string): Promise<void> => {
-    isLoaded.value = false;
+    loading.value = true;
 
-    // Hydrate all stores (fetch data)
-    loadingText.value = "Fetching & parsing files...";
-    await fileStore.hydrate(url);
-    loadingText.value = "Fetching & parsing k-grams...";
-    await kgramStore.hydrate(url);
-    loadingText.value = "Fetching & parsing metadata...";
-    await metadataStore.hydrate(url);
-    loadingText.value = "Fetching & parsing pairs...";
-    await pairStore.hydrate(url);
+    try {
+      // Hydrate all stores (fetch data)
+      loadingText.value = "Fetching & parsing metadata...";
+      await metadataStore.hydrate(url);
 
-    // Calculate the initial cut-off value.
-    loadingText.value = "Calculating initial cut-off...";
-    cutoff.value = guessSimilarityThreshold(pairStore.pairsActiveList);
-    cutoffDefault.value = cutoff.value;
+      loadingText.value = "Fetching & parsing files...";
+      await fileStore.hydrate(url);
+      loadingText.value = "Fetching & parsing k-grams...";
+      await kgramStore.hydrate(url);
 
-    isLoaded.value = true;
+      loadingText.value = "Fetching & parsing pairs...";
+      await pairStore.hydrate(url);
+
+      // Calculate the initial cut-off value.
+      loadingText.value = "Calculating initial cut-off...";
+      cutoff.value = guessSimilarityThreshold(pairStore.pairsActiveList);
+      cutoffDefault.value = cutoff.value;
+    } catch (e) {
+      error.value = e;
+    }
+
+    loading.value = false;
   };
 
+  const { dataUrl } = useAppMode();
+
   // Re-hydrate the API stores when the anonymous value changes.
-  watch(
-    isAnonymous,
-    () => {
-      fileStore.anonymize();
-    }
-  );
+  watch(isAnonymous, () => fileStore.anonymize());
+  // Re-hydrate the API stores when the url value changes.
+  watch(dataUrl, () => hydrate());
 
   return {
+    url: dataUrl,
     isAnonymous,
-    isLoaded,
+    loading,
     loadingText,
+    error,
     cutoff,
     cutoffDefault,
     cutoffDebounced,
