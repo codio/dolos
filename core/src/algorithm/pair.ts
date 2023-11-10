@@ -34,8 +34,8 @@ export class Pair extends Identifiable {
   constructor(
     public readonly leftEntry: FileEntry,
     public readonly rightEntry: FileEntry,
-    // maximum amount of files a kgram can occur in a file before it is ignored
-    public readonly kgramMaxFileOccurrences: number,
+    // // maximum amount of files a kgram can occur in a file before it is ignored
+    // public readonly kgramMaxFileOccurrences: number,
   ) {
     super();
     this.leftFile = leftEntry.file;
@@ -56,8 +56,8 @@ export class Pair extends Identifiable {
       }
     }
 
-    this.shared = this.shared
-      .filter((k: SharedFingerprint) => k.fileCount() <= kgramMaxFileOccurrences);
+    // this.shared = this.shared
+    //   .filter((k: SharedFingerprint) => k.fileCount() <= kgramMaxFileOccurrences);
 
     const left: Kgram[] = [];
     const right: Kgram[] = [];

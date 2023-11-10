@@ -3,7 +3,7 @@ import { shallowRef } from "vue";
 import { DATA_URL } from "@/api";
 import { Kgram, File } from "@/api/models";
 import { parseCsv } from "@/api/utils";
-import { useFileStore, useApiStore } from "@/api/stores";
+import { useFileStore/*, useApiStore */} from "@/api/stores";
 
 /**
  * Store containing the k-grams data & helper functions.
@@ -36,7 +36,7 @@ export const useKgramStore = defineStore("kgrams", () => {
   }
 
   // Reference to other stores.
-  const apiStore = useApiStore();
+  // const apiStore = useApiStore();
   const fileStore = useFileStore();
 
   // Fetch the k-grams from the CSV file.

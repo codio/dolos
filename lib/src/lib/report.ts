@@ -46,7 +46,7 @@ export class Report {
   }
 
   public getPair(file1: TokenizedFile, file2: TokenizedFile): Pair {
-    return this.index.getPair(file1, file2, this.kgramMaxFileOccurrences);
+    return this.index.getPair(file1, file2);
   }
 
   public allPairs(): Array<Pair> {

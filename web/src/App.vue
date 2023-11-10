@@ -4,4 +4,4 @@
     <snackbar />
   </v-app>
 </template>
-// todo: api.hydrate(dolosReport || undefined);
+<!-- todo: api.hydrate(dolosReport || undefined); -->

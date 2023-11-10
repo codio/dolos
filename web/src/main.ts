@@ -3,8 +3,8 @@ import router from "./router";
 import { createApp } from "vue";
 import { createVuetify } from "vuetify";
 import { createPinia } from "pinia";
-import { VDataTable } from "vuetify/labs/VDataTable";
-import { VSkeletonLoader } from "vuetify/labs/VSkeletonLoader";
+import { VDataTable } from "vuetify/components/VDataTable";
+import { VSkeletonLoader } from "vuetify/components/VSkeletonLoader";
 import webFontLoader from "webfontloader";
 
 // Styles

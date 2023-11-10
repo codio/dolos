@@ -37,6 +37,7 @@ export const useApiStore = defineStore("api", () => {
 
   // Hydrate the API stores.
   const hydrate = async (url?: string): Promise<void> => {
+    url = url || dataUrl.value;
     loading.value = true;
 
     try {
@@ -68,7 +69,10 @@ export const useApiStore = defineStore("api", () => {
   // Re-hydrate the API stores when the anonymous value changes.
   watch(isAnonymous, () => fileStore.anonymize());
   // Re-hydrate the API stores when the url value changes.
-  watch(dataUrl, () => hydrate());
+  watch(dataUrl, (data, data2) => {
+    console.log('data', data, data2)
+    hydrate(dataUrl.value)
+  });
 
   return {
     url: dataUrl,

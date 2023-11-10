@@ -25,7 +25,7 @@ export default async function runServer(
   if (reportDir !== null) {
     app.use("/data", express.static(reportDir));
   }
-  app.use(express.static(path.dirname(assets())));
+  app.use(express.static(webroot()));
 
   app.get("/check", function (_, res) {
     const checkResponse = {

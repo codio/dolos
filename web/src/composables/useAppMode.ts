@@ -21,6 +21,11 @@ export function useAppMode() {
 
   // URL to the data.
   const dataUrl = computed(() => {
+    const urlSearch = new URLSearchParams(window.location.search);
+    const dolosReport = urlSearch.get("url");
+    if (dolosReport) {
+      return dolosReport;
+    }
     if (import.meta.env.VITE_MODE === "server") {
       return `${reportUrl.value}/data`;
     } else {
