@@ -2,20 +2,22 @@ FROM node:18-alpine3.16
 
 RUN apk --no-cache add python3 build-base
 
-WORKDIR /dolos-app/lib/dist
-COPY lib/dist .
-WORKDIR /dolos-app/lib
-COPY lib/package.json ./
-
 WORKDIR /dolos-app/core/dist
 COPY core/dist .
 WORKDIR /dolos-app/core
 COPY core/package.json ./
 
+WORKDIR /dolos-app/lib/dist
+COPY lib/dist .
+WORKDIR /dolos-app/lib
+COPY lib/package.json ./
+
 WORKDIR /dolos-app/web/dist
 COPY web/dist .
 WORKDIR /dolos-app/web
 COPY web/package.json ./
+COPY web/index.js ./
+COPY web/index.d.ts ./
 
 WORKDIR /dolos-app/cli/dist
 COPY cli/dist .
