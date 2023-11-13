@@ -387,15 +387,15 @@ jobs:
           cd lib/
           yarn build --force
 
-      - name: Build CLI 🔧
-        run: |
-          cd cli/
-          yarn build --force
-
       - name: Build web 🔧
         run: |
           cd web/
           yarn build
+
+      - name: Build CLI 🔧
+        run: |
+          cd cli/
+          yarn build --force
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
