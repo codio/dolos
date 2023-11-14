@@ -46,12 +46,12 @@ export class Report {
   }
 
   public getPair(file1: TokenizedFile, file2: TokenizedFile): Pair {
-    return this.index.getPair(file1, file2);
+    return this.index.getPair(file1, file2, this.kgramMaxFileOccurrences);
   }
 
   public allPairs(): Array<Pair> {
     if (this.pairs.length === 0) {
-      this.pairs = this.index.allPairs(this.options.sortBy);
+      this.pairs = this.index.allPairs(this.options.sortBy, this.kgramMaxFileOccurrences);
     }
     return this.pairs;
   }

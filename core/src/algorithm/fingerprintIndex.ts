@@ -121,20 +121,20 @@ export class FingerprintIndex {
     return Array.from(this.files.values());
   }
 
-  public getPair(file1: TokenizedFile, file2: TokenizedFile): Pair {
+  public getPair(file1: TokenizedFile, file2: TokenizedFile, kgramMaxFileOccurrences?: number): Pair {
     const entry1 = this.files.get(file1.id);
     const entry2 = this.files.get(file2.id);
     assertDefined(entry1, `File ${file1.path} not found in index`);
     assertDefined(entry2, `File ${file2.path} not found in index`);
-    return new Pair(entry1, entry2);
+    return new Pair(entry1, entry2, kgramMaxFileOccurrences || Number.POSITIVE_INFINITY);
   }
 
-  public allPairs(sortBy?: string): Array<Pair> {
+  public allPairs(sortBy?: string, kgramMaxFileOccurrences?: number): Array<Pair> {
     const pairs = [];
     const entries = Array.from(this.files.values());
     for (let i = 0; i < entries.length; i++) {
       for (let j = i + 1; j < entries.length; j++) {
-        pairs.push(new Pair(entries[i], entries[j]));
+        pairs.push(new Pair(entries[i], entries[j], kgramMaxFileOccurrences || Number.POSITIVE_INFINITY));
       }
     }
 
