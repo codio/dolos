@@ -10,6 +10,11 @@ In `lib/`
 yarn build --force
 ```
 
+In `core/`
+```
+yarn build --force
+```
+
 In `web/`
 ```
 yarn build

@@ -1,0 +1,46 @@
+{
+  "name": "@dodona/dolos-core",
+  "version": "1.0.0",
+  "exports": "./dist/index.js",
+  "type": "module",
+  "description": "Core classes and algorithms for Dolos source code similarity checker",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "test": "tsc --build && ava",
+    "build": "tsc --build --verbose",
+    "force-build": "tsc --build --verbose --force",
+    "lint": "eslint --ext .ts src/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/dodona-edu/dolos.git"
+  },
+  "license": "MIT",
+  "private": false,
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "devDependencies": {
+    "@ava/typescript": "4.1.0",
+    "@typescript-eslint/eslint-plugin": "6.8.0",
+    "@typescript-eslint/parser": "6.8.0",
+    "ava": "5.3.1",
+    "eslint": "8.53.0",
+    "typescript": "5.2.2"
+  },
+  "bugs": {
+    "url": "https://github.com/dodona-edu/dolos/issues"
+  },
+  "homepage": "https://dolos.ugent.be",
+  "keywords": [
+    "plagiarism",
+    "plagiarism-checker",
+    "plagiarism detection",
+    "similarity",
+    "code similarity"
+  ]
+}

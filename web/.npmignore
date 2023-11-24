@@ -1,4 +1,5 @@
 /*
 !dist/
-dist/data/
-*.map
+dist/data
+!index.js
+!index.d.ts

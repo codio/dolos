@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 import { shallowRef } from "vue";
 import { DATA_URL } from "@/api";
-import { File, Kgram } from "@/api/models";
+import { Kgram, File } from "@/api/models";
 import { parseCsv } from "@/api/utils";
-import { useFileStore } from "@/api/stores";
+import { useFileStore/*, useApiStore */} from "@/api/stores";
 
 /**
  * Store containing the k-grams data & helper functions.
@@ -35,6 +35,10 @@ export const useKgramStore = defineStore("kgrams", () => {
     return kgrams;
   }
 
+  // Reference to other stores.
+  // const apiStore = useApiStore();
+  const fileStore = useFileStore();
+
   // Fetch the k-grams from the CSV file.
   async function fetch(
     url: string = DATA_URL
@@ -42,9 +46,6 @@ export const useKgramStore = defineStore("kgrams", () => {
     const sanitized = url.lastIndexOf("/") !== url.length - 1 ? url + "/" : url;
     return await parseCsv(sanitized + "kgrams.csv");
   }
-
-  // Reference to other stores.
-  const fileStore = useFileStore();
 
   // Hydrate the store
   async function hydrate(url?: string): Promise<void> {

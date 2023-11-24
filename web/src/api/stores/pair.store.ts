@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
-import { computed, shallowRef } from "vue";
 import { DATA_URL } from "@/api";
 import { parseCsv } from "@/api/utils";
+import { shallowRef, computed } from "vue";
 import { Cluster } from "@/util/clustering-algorithms/ClusterTypes";
 import {
   singleLinkageCluster
@@ -16,8 +16,6 @@ import { File, Pair } from "@/api/models";
 import {
   getClusterElements
 } from "@/util/clustering-algorithms/ClusterFunctions";
-import * as Comlink from "comlink";
-import { DataWorker } from "@/api/workers/data.worker";
 
 /**
  * Store containing the pair data & helper functions.
@@ -26,6 +24,16 @@ export const usePairStore = defineStore("pairs", () => {
   // List of pairs.
   const pairsById = shallowRef<Pair[]>([]);
   const pairsList = computed<Pair[]>(() => Object.values(pairsById.value));
+
+  // If only one pair is available.
+  const hasOnlyOnePair = computed<boolean>(() => pairsList.value.length === 1);
+  // Get the only pair.
+  const onlyPair = computed<Pair | null>(() => {
+    if (hasOnlyOnePair.value) {
+      return pairsList.value[0];
+    }
+    return null;
+  });
 
   // Reference to the other stores.
   const fileStore = useFileStore();
@@ -38,11 +46,12 @@ export const usePairStore = defineStore("pairs", () => {
     if (!fileStore.hasLabels) {
       return pairsById.value;
     }
-    const activeFiles = fileStore.filesActiveList;
+    const activeFilesById = fileStore.filesActiveById;
     const pairs: Pair[] = [];
     // Add all pairs that have both files active
+
     for (const pair of pairsList.value) {
-      if (activeFiles[pair.leftFile.id] && activeFiles[pair.rightFile.id]) {
+      if (activeFilesById[pair.leftFile.id] && activeFilesById[pair.rightFile.id]) {
         pairs[pair.id] = pair;
       }
     }
@@ -57,7 +66,8 @@ export const usePairStore = defineStore("pairs", () => {
   const hydrated = shallowRef(false);
 
   // Data worker
-  const dataWorker = Comlink.wrap<DataWorker>(new Worker(new URL("../workers/data.worker.ts", import.meta.url)));
+  type DataWorker = typeof import("../workers/data.worker");
+  const dataWorker = new ComlinkWorker<DataWorker>((new URL("../workers/data.worker.ts", import.meta.url)));
 
   // Parse the pairs from a CSV string.
   function parse(pairData: any[], files: File[]): Pair[] {
@@ -150,8 +160,12 @@ export const usePairStore = defineStore("pairs", () => {
   }
 
   // Get a cluster by its id.
-  function getClusterById(id: number): Cluster | undefined {
-    return sortedClustering.value[id];
+  function getClusterById(id: number | string): Cluster | undefined {
+    if (typeof id === "string") {
+      return sortedClustering.value[parseInt(id)];
+    } else {
+      return sortedClustering.value[id];
+    }
   }
 
   return {
@@ -159,6 +173,8 @@ export const usePairStore = defineStore("pairs", () => {
     pairsList,
     pairsActive: pairsActiveById,
     pairsActiveList,
+    hasOnlyOnePair,
+    onlyPair,
     hydrated,
     hydrate,
     populateFragments,

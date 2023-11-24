@@ -1,10 +1,11 @@
 {
   "name": "@dodona/dolos",
-  "version": "2.1.0",
+  "version": "2.4.2",
   "description": "Code similarity detection based on the Winnowing algorithm",
-  "main": "dist/index.js",
+  "type": "module",
+  "export": "./dist/index.js",
   "engines": {
-    "node": ">12"
+    "node": ">=16"
   },
   "bin": {
     "dolos": "dist/cli.js"
@@ -27,35 +28,33 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/express": "4.17.17",
-    "@types/node": "18.14.6",
-    "@typescript-eslint/eslint-plugin": "5.52.0",
-    "@typescript-eslint/parser": "5.52.0",
-    "eslint": "8.35.0",
-    "np": "7.6.3",
-    "ts-node": "10.9.1",
-    "typescript": "4.9.5"
+    "@types/express": "4.17.21",
+    "@types/node": "^20.3.2",
+    "@typescript-eslint/eslint-plugin": "6.8.0",
+    "@typescript-eslint/parser": "6.8.0",
+    "eslint": "8.53.0",
+    "typescript": "5.2.2"
   },
   "dependencies": {
-    "@dodona/dolos-lib": "2.1.0",
-    "@dodona/dolos-web": "2.1.0",
-    "@elm-tooling/tree-sitter-elm": "^5.6.0",
-    "chalk": "^4.1.1",
-    "cliui": "^8.0.0",
-    "commander": "^10.0.0",
-    "csv-stringify": "^6.2.0",
-    "express": "^4.17.1",
-    "open": "^8.2.1",
-    "tree-sitter": "^0.20.0",
-    "tree-sitter-bash": "^0.19.0",
-    "tree-sitter-c": "^0.20.1",
+    "@dodona/dolos-lib": "3.0.0",
+    "@dodona/dolos-web": "2.4.2",
+    "@elm-tooling/tree-sitter-elm": "^5.6.6",
+    "chalk": "^5.3.0",
+    "cliui": "^8.0.1",
+    "commander": "^11.1.0",
+    "csv-stringify": "^6.4.4",
+    "express": "^4.18.2",
+    "open": "^9.0.0",
+    "tree-sitter": "^0.20.6",
+    "tree-sitter-bash": "^0.20.3",
+    "tree-sitter-c": "^0.20.6",
     "tree-sitter-c-sharp": "^0.20.0",
-    "tree-sitter-cpp": "^0.20.0",
-    "tree-sitter-java": "^0.19.1",
-    "tree-sitter-javascript": "^0.19.0",
+    "tree-sitter-cpp": "^0.20.3",
+    "tree-sitter-java": "^0.20.2",
+    "tree-sitter-javascript": "^0.20.1",
     "tree-sitter-php": "^0.19.0",
-    "tree-sitter-python": "^0.20.1",
-    "tree-sitter-typescript": "^0.20.0"
+    "tree-sitter-python": "^0.20.4",
+    "tree-sitter-typescript": "^0.20.3"
   },
   "bugs": {
     "url": "https://github.com/dodona-edu/dolos/issues"

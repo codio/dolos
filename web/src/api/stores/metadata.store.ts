@@ -3,6 +3,7 @@ import { shallowRef } from "vue";
 import { DATA_URL } from "@/api";
 import { Metadata } from "@/api/models";
 import { castToType, parseCsv } from "@/api/utils";
+// import { useApiStore } from "@/api/stores";
 
 /**
  * Store containing the metadata & helper functions.
@@ -20,6 +21,9 @@ export const useMetadataStore = defineStore("metadata", () => {
       data.map(row => [row.property, castToType(row).value])
     );
   }
+
+  // Reference to other stores.
+  // const apiStore = useApiStore();
 
   // Fetch the metadata from the CSV file.
   async function fetch(

@@ -1,5 +1,5 @@
 <template>
-  <v-simple-table class="graph-list" fixed-header>
+  <v-table class="graph-list" fixed-header :height="props.maxHeight" density="compact">
     <thead>
       <tr>
         <th>Submission</th>
@@ -12,25 +12,26 @@
         v-for="file in files"
         :key="file.id"
         :id="`file-${file.id}`"
-        tag="tr"
         class="graph-list-row"
         :class="{ selected: selectedFiles?.includes(file) }"
-        :to="`/submissions/${file.id}`"
+        :to="{ name: 'Submission', params: { fileId: String(file.id) } }"
+        custom
+        v-slot="{ navigate }"
       >
-        <td class="d-flex align-center">
-          <label-dot
-            :file="file"
-          />
+        <tr @click="navigate">
+          <td class="d-flex align-center">
+            <label-dot :file="file" />
 
-          <span class="ml-2">{{ file.extra.fullName ?? file.shortPath }}</span>
-        </td>
+            <span class="ml-2">{{ file.extra.fullName ?? file.shortPath }}</span>
+          </td>
 
-        <td v-if="hasTimestamps">
-          <file-timestamp :file="file" />
-        </td>
+          <td v-if="hasTimestamps">
+            <file-timestamp :file="file" />
+          </td>
+        </tr>
       </router-link>
     </tbody>
-  </v-simple-table>
+  </v-table>
 </template>
 
 <script lang="ts" setup>
@@ -39,7 +40,6 @@ import { File } from "@/api/models";
 import { Cluster } from "@/util/clustering-algorithms/ClusterTypes";
 import { getClusterElementsArray } from "@/util/clustering-algorithms/ClusterFunctions";
 import { timestampSort } from "@/util/SortingFunctions";
-import { useVuetify } from "@/composables";
 import { useFileStore } from "@/api/stores";
 import { storeToRefs } from "pinia";
 
@@ -52,15 +52,14 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {});
-const vuetify = useVuetify();
 const { hasTimestamps } = storeToRefs(useFileStore());
 
 // List of files in the cluster.
 // Sorted by timestamp.
 const files = computed(() => {
-  return getClusterElementsArray(props.cluster).sort(timestampSort<File>(
-    (f) => f.extra.timestamp || new Date()
-  ));
+  return getClusterElementsArray(props.cluster).sort(
+    timestampSort<File>((f) => f.extra.timestamp || new Date())
+  );
 });
 
 // Row cursor
@@ -73,9 +72,10 @@ watch(
   () => {
     if (props.selectedFiles && props.selectedFiles.length > 0 && props.scroll) {
       const file = props.selectedFiles[0];
-      vuetify.goTo(`#file-${file.id}`, {
-        container: ".graph-list-body",
-      });
+      // TODO: find a suitable replacement
+      // vuetify.goTo(`#file-${file.id}`, {
+      //   container: ".graph-list-body",
+      // });
     }
   }
 );
@@ -84,6 +84,11 @@ watch(
 <style lang="scss" scoped>
 .graph-list {
   max-height: v-bind("props.maxHeight");
+
+  // No wrapping of columns
+  td {
+    white-space: nowrap;
+  }
 
   &-row {
     cursor: v-bind("rowCursor");
@@ -99,6 +104,15 @@ watch(
       height: 10px;
       display: block;
       border-radius: 50%;
+    }
+  }
+
+  &-body {
+    tr {
+      &:hover {
+        cursor: pointer;
+        background-color: rgba(0, 0, 0, 0.03) !important;
+      }
     }
   }
 }

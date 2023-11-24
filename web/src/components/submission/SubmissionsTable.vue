@@ -1,15 +1,11 @@
 <template>
   <v-data-table
-    class="row-pointer"
     :headers="headers"
     :items="items"
     :search="searchValue"
-    :dense="props.dense"
-    :hide-default-footer="!props.pagination"
-    :disable-pagination="!props.pagination"
-    :footer-props="footerProps"
-    sort-by="similarity"
-    sort-desc
+    :density="props.dense ? 'compact' : 'comfortable'"
+    :sort-by="sortBy"
+    :items-per-page="15"
     must-sort
     fixed-header
     @click:row="rowClicked"
@@ -17,9 +13,9 @@
     <template #item.name="{ item }">
       <div class="submission-info">
         <div class="submission-name">
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
-              <span v-on="on" v-bind="attrs">
+          <v-tooltip location="top">
+            <template #activator="{ props }">
+              <span v-bind="props">
                 {{ item.name }}
               </span>
             </template>
@@ -52,13 +48,12 @@
 
     <template #item.timestamp="{ item }">
       <span class="submission-timestamp">
-        <v-tooltip top>
-          <template v-slot:activator="{ on, attrs }">
+        <v-tooltip location="top">
+          <template #activator="{ props }">
             <span
               v-if="props.order"
-              v-on="on"
-              v-bind="attrs"
-              :class="item.order === 1 ? 'primary--text' : 'text--secondary'"
+              v-bind="props"
+              :class="item.order === 1 ? 'text-primary' : 'text-medium-emphasis'"
             >
               #{{ item.order }}
             </span>
@@ -68,11 +63,16 @@
         </v-tooltip>
 
         <file-timestamp
-          :class="props.order && item.order === 1 ? 'primary--text' : ''"
+          :class="props.order && item.order === 1 ? 'text-primary' : ''"
           :timestamp="item.timestamp"
           long
         />
       </span>
+    </template>
+
+    <!-- Temporary hack to hide pagination when disabled -->
+    <template v-if="!pagination" #bottom>
+      <div />
     </template>
   </v-data-table>
 </template>
@@ -80,11 +80,10 @@
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
-import { DataTableHeader } from "vuetify";
 import { useFileStore } from "@/api/stores";
 import { File } from "@/api/models";
-import { useRouter } from "@/composables";
 import { useVModel } from "@vueuse/core";
+import { useRouter } from "vue-router";
 
 interface Props {
   files: File[];
@@ -95,6 +94,7 @@ interface Props {
   order?: boolean;
   concise?: boolean;
   disableSorting?: boolean;
+  limit?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -108,20 +108,29 @@ const { similarities, hasTimestamps, hasLabels } = storeToRefs(fileStore);
 // Search value.
 const searchValue = useVModel(props, "search", emit);
 
+// Table sort
+const sortBy = computed<any>(() => {
+  if (props.disableSorting) return [];
+  return [{
+    key: "similarity",
+    order: "desc",
+  }]
+});
+
 // Table headers
-const headers = computed<DataTableHeader[]>(() => {
-  const h = [] as DataTableHeader[];
+const headers = computed(() => {
+  const h = [];
   h.push({
-    text: "Submission",
-    value: "name",
+    title: "Submission",
+    key: "name",
     sortable: props.disableSorting ? false : true,
   });
 
   // Only add the label header if there are labels.
   if (hasLabels.value) {
     h.push({
-      text: "Label",
-      value: "label",
+      title: "Label",
+      key: "label",
       sortable: false,
     });
   }
@@ -129,24 +138,24 @@ const headers = computed<DataTableHeader[]>(() => {
   // Only add timestamp header when present.
   if (hasTimestamps.value && !props.concise) {
     h.push({
-      text: "Timestamp",
-      value: "timestamp",
+      title: "Timestamp",
+      key: "timestamp",
       sortable: props.disableSorting ? false : true,
       filterable: false,
     });
   }
 
   h.push({
-    text: "Highest similarity",
-    value: "similarity",
+    title: "Highest similarity",
+    key: "similarity",
     sortable: props.disableSorting ? false : true,
     filterable: false,
   });
 
   if (!props.concise) {
     h.push({
-      text: "Lines",
-      value: "lines",
+      title: "Lines",
+      key: "lines",
       sortable: props.disableSorting ? false : true,
       filterable: false,
     });
@@ -155,39 +164,38 @@ const headers = computed<DataTableHeader[]>(() => {
   return h;
 });
 
-// Footer props
-const footerProps = {
-  itemsPerPageOptions: [props.itemsPerPage, 25, 50, 100, -1],
-  showCurrentPage: true,
-  showFirstLastPage: true,
-};
-
 // Table items
 // In the format for the Vuetify data-table.
 const items = computed(() => {
   // Sort files on submission date.
+  // This is used to determin the order number in the table.
   const sortedFiles = [...props.files].sort((a, b) => {
     if (!a.extra.timestamp) return 1;
     if (!b.extra.timestamp) return -1;
-    return a.extra.timestamp - b.extra.timestamp;
+    return a.extra.timestamp.getTime() - b.extra.timestamp.getTime();
   });
 
-  return props.files
-    .map((file) => ({
-      id: file.id,
-      name: file.extra.fullName ?? file.shortPath,
-      path: file.path,
-      label: file.label,
-      similarity: similarities.value.get(file)?.similarity ?? 0,
-      timestamp: file.extra.timestamp,
-      lines: file.content.split("\n").length ?? 0,
-      order: sortedFiles.indexOf(file) + 1,
-    }));
+  const items = props.files.map((file) => ({
+    id: file.id,
+    name: file.extra.fullName ?? file.shortPath,
+    path: file.path,
+    label: file.label,
+    similarity: similarities.value.get(file)?.similarity ?? 0,
+    timestamp: file.extra.timestamp,
+    lines: file.content.split("\n").length ?? 0,
+    order: sortedFiles.indexOf(file) + 1,
+  }));
+
+  // Sort the files by similarity, by default.
+  // This is necessary for the 'limit' prop to work properly.
+  items.sort((a, b) => b.similarity - a.similarity);
+
+  return props.limit ? items.slice(0, props.limit) : items;
 });
 
 // When a row is clicked.
-const rowClicked = (item: { id: string }): void => {
-  router.push(`/submissions/${item.id}`);
+const rowClicked = (e: Event, value: any): void => {
+  router.push({ name: "Submission", params: { fileId: value.item.id } });
 };
 </script>
 
