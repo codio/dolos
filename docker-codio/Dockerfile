@@ -37,7 +37,7 @@ RUN apk --no-cache add tar zstd
 
 WORKDIR /
 ADD https://static-assets.codio.com/internal-tools/linux-amd64/s3-task-runner /s3-task-runner
-RUN chmod +x /app/s3-task-runner
+RUN chmod +x /s3-task-runner
 
 WORKDIR /dolos
 ENTRYPOINT [ "nice", "-n", "15", "node", "/dolos-app/cli/dist/cli.js" ]
