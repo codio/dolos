@@ -1,4 +1,4 @@
-FROM node:18-alpine3.16
+FROM node:18-alpine3.16 AS build
 
 RUN apk --no-cache add python3 build-base
 
@@ -29,9 +29,17 @@ COPY package.json ./
 COPY yarn.lock ./
 RUN yarn install --production
 
-RUN apk --no-cache del python3 build-base
+
+FROM node:18-alpine3.16
+COPY --from=build /dolos-app /dolos-app
 
 EXPOSE 3000/tcp
+
+RUN apk --no-cache add tar zstd
+
+WORKDIR /
+ADD https://static-assets.codio.com/internal-tools/linux-amd64/s3-task-runner /s3-task-runner
+RUN chmod +x /s3-task-runner
 
 WORKDIR /dolos
 ENTRYPOINT [ "nice", "-n", "15", "node", "/dolos-app/cli/dist/cli.js" ]
